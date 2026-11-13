@@ -21,17 +21,17 @@ echo "--> [1/6] Updating system packages & installing build tools..."
 sudo apt-get update -y
 sudo apt-get install -y curl build-essential pkg-config libssl-dev git ufw jq
 
-# Ensure sufficient swap memory for small EC2 instances (t2.micro / t3.micro have only 1GB RAM)
-MEM_MB=$(free -m | awk '/^Mem:/{print $2}')
-SWAP_MB=$(free -m | awk '/^Swap:/{print $2}')
-if [ "${MEM_MB:-1000}" -lt 2500 ] && [ "${SWAP_MB:-0}" -lt 1000 ]; then
-    echo "--> [RAM Check] Low RAM detected (${MEM_MB}MB). Creating 4GB swap space to prevent OOM Killer..."
-    sudo fallocate -l 4G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=4096
-    sudo chmod 600 /swapfile
-    sudo mkswap /swapfile
-    sudo swapon /swapfile
-    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab || true
-    echo "--> 4GB swap space activated successfully."
+# Ensure swap memory if precompiled binary is missing and RAM is small
+if [ ! -f "bin/engine-gateway" ]; then
+    MEM_MB=$(free -m | awk '/^Mem:/{print $2}')
+    SWAP_MB=$(free -m | awk '/^Swap:/{print $2}')
+    if [ "${MEM_MB:-1000}" -lt 2500 ] && [ "${SWAP_MB:-0}" -lt 500 ]; then
+        echo "--> [RAM Check] Low RAM detected (${MEM_MB}MB). Creating 1.5GB swap space..."
+        sudo fallocate -l 1500M /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=1500 2>/dev/null || true
+        sudo chmod 600 /swapfile || true
+        sudo mkswap /swapfile 2>/dev/null || true
+        sudo swapon /swapfile 2>/dev/null || true
+    fi
 fi
 
 # 2. Install Rust toolchain if not present
@@ -48,10 +48,24 @@ fi
 echo "--> [3/6] Adding wasm32-wasip1 compilation target..."
 rustup target add wasm32-wasip1
 
-# 4. Build Engine & Sample Functions in Release Mode
-echo "--> [4/6] Compiling WasmPulse Engine (using single job to conserve memory)..."
-cargo build --release -p engine-gateway -j 1
-cargo build --release -p wasmpulse-cli -j 1
+# 4. Setup Engine Binary & Sample Functions
+mkdir -p target/release
+mkdir -p target/wasm32-wasip1/release
+mkdir -p sample-functions
+
+if [ -f "bin/engine-gateway" ]; then
+    echo "--> [4/6] Precompiled release binary found! Setting up instantly (0 RAM required)..."
+    cp bin/engine-gateway target/release/engine-gateway
+    chmod +x target/release/engine-gateway
+    if [ -f "bin/wasmpulse" ]; then
+        cp bin/wasmpulse target/release/wasmpulse
+        chmod +x target/release/wasmpulse
+    fi
+else
+    echo "--> [4/6] Compiling WasmPulse Engine (using single job to conserve memory)..."
+    cargo build --release -p engine-gateway -j 1
+    cargo build --release -p wasmpulse-cli -j 1
+fi
 
 # Precompile sample function if source exists
 mkdir -p target/wasm32-wasip1/release

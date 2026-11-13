@@ -20,7 +20,5 @@ desktop.ini
 *.tmp
 *.bak
 
-# Binaries
+# Windows executables
 bin/*.exe
-bin/engine-gateway
-bin/wasmpulse
