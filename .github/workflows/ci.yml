@@ -1,0 +1,35 @@
+name: WasmPulse CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    name: Build & Test Engine Core & Gateway
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Compile Sample Guest Function (Wasm)
+        run: |
+          cargo build --release --target wasm32-wasip1 --manifest-path examples/rust-echo/Cargo.toml
+          mkdir -p sample-functions
+          cp target/wasm32-wasip1/release/rust_echo.wasm sample-functions/
+
+      - name: Run Workspace Tests
+        run: cargo test --workspace --verbose
+
+      - name: Build Release Engine Gateway
+        run: cargo build --release -p engine-gateway

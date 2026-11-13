@@ -1,0 +1,26 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+*.pdb
+
+# Local environment and IDE
+.vs/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Binaries
+bin/*.exe
+bin/engine-gateway
+bin/wasmpulse

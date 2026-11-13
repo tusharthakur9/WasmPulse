@@ -1,0 +1,2583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>WasmPulse Cloud Console</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================================
+           DESIGN SYSTEM
+        ========================================================= */
+
+        :root {
+            --bg: #f6f8fb;
+            --surface: #ffffff;
+            --surface-soft: #f9fafb;
+
+            --border: #e5e7eb;
+            --border-dark: #d1d5db;
+
+            --text: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-soft: #eff6ff;
+
+            --success: #15803d;
+            --success-soft: #f0fdf4;
+
+            --warning: #b45309;
+            --warning-soft: #fffbeb;
+
+            --danger: #dc2626;
+            --danger-soft: #fef2f2;
+
+            --terminal: #111827;
+
+            --radius: 10px;
+            --radius-lg: 14px;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* =========================================================
+           NAVBAR
+        ========================================================= */
+
+        .navbar {
+            height: 64px;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .brand-text {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text);
+        }
+
+        .brand-tag {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: #f3f4f6;
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .node-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        /* =========================================================
+           MAIN LAYOUT
+        ========================================================= */
+
+        .wrapper {
+            width: min(1280px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 28px 0 60px;
+        }
+
+        /* =========================================================
+           PAGE HEADER
+        ========================================================= */
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        .page-description {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* =========================================================
+           TABS
+        ========================================================= */
+
+        .tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+
+            padding: 4px;
+            margin-bottom: 22px;
+
+            box-shadow: var(--shadow-sm);
+
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 0 0 auto;
+
+            border: 0;
+            background: transparent;
+
+            color: var(--text-muted);
+
+            padding: 8px 14px;
+            border-radius: 7px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+            background: #f3f4f6;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        /* =========================================================
+           METRICS
+        ========================================================= */
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .metric-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 13px;
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metric-icon {
+            width: 28px;
+            height: 28px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 7px;
+
+            background: var(--primary-soft);
+            color: var(--primary);
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            color: var(--text);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+        }
+
+        .metric-note {
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .metric-note.success {
+            color: var(--success);
+        }
+
+        /* =========================================================
+           CARDS
+        ========================================================= */
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-padding {
+            padding: 22px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .section-description {
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* =========================================================
+           STUDIO
+        ========================================================= */
+
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 390px minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+        }
+
+        .form-row label {
+            display: block;
+            margin-bottom: 6px;
+
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .input-text,
+        .input-textarea {
+            width: 100%;
+
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+
+            background: var(--surface);
+            color: var(--text);
+
+            padding: 9px 11px;
+
+            font-size: 13px;
+            font-family: "JetBrains Mono", monospace;
+
+            transition:
+                border-color 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .input-text {
+            height: 40px;
+        }
+
+        .input-textarea {
+            min-height: 145px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .input-text::placeholder,
+        .input-textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .input-text:focus,
+        .input-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+
+        /* =========================================================
+           BUTTONS
+        ========================================================= */
+
+        .btn-primary {
+            width: 100%;
+
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+
+            background: var(--primary);
+            color: white;
+
+            min-height: 40px;
+            padding: 9px 15px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border-dark);
+            border-radius: 7px;
+
+            background: white;
+            color: var(--text-secondary);
+
+            padding: 7px 11px;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            color: var(--text);
+        }
+
+        /* =========================================================
+           TELEMETRY
+        ========================================================= */
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 9px;
+            margin-bottom: 16px;
+        }
+
+        .telemetry-item {
+            border: 1px solid var(--border);
+            background: var(--surface-soft);
+            border-radius: 8px;
+            padding: 10px 11px;
+        }
+
+        .telemetry-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .telemetry-value {
+            display: block;
+
+            color: var(--text);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12px;
+            font-weight: 500;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .telemetry-value.primary {
+            color: var(--primary);
+        }
+
+        .telemetry-value.success {
+            color: var(--success);
+        }
+
+        .telemetry-value.warning {
+            color: var(--warning);
+        }
+
+        /* =========================================================
+           TERMINAL
+        ========================================================= */
+
+        .terminal {
+            overflow: hidden;
+            border: 1px solid #1f2937;
+            border-radius: 9px;
+            background: var(--terminal);
+        }
+
+        .terminal-header {
+            min-height: 38px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 12px;
+
+            border-bottom: 1px solid #273244;
+            background: #182131;
+
+            color: #9ca3af;
+            font-size: 11px;
+        }
+
+        .terminal-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .terminal-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #6b7280;
+        }
+
+        .terminal-body {
+            min-height: 270px;
+            max-height: 380px;
+
+            overflow-y: auto;
+
+            padding: 16px;
+
+            color: #d1d5db;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12px;
+            line-height: 1.7;
+
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* =========================================================
+           TABLE
+        ========================================================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 700px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f9fafb;
+
+            color: var(--text-muted);
+
+            padding: 11px 14px;
+
+            border-bottom: 1px solid var(--border);
+
+            font-size: 11px;
+            font-weight: 600;
+
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px 14px;
+
+            border-bottom: 1px solid var(--border);
+
+            color: var(--text-secondary);
+
+            font-size: 13px;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        tbody tr:hover td {
+            background: #fafafa;
+        }
+
+        .function-name {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .code-pill {
+            display: inline-block;
+
+            border: 1px solid #dbeafe;
+            border-radius: 5px;
+
+            background: #eff6ff;
+            color: #1d4ed8;
+
+            padding: 3px 7px;
+
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+        }
+
+        .count-value {
+            color: var(--success);
+            font-family: "JetBrains Mono", monospace;
+            font-weight: 500;
+        }
+
+        /* =========================================================
+           BENCHMARKS
+        ========================================================= */
+
+        .benchmark-row {
+            margin-bottom: 22px;
+        }
+
+        .benchmark-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .benchmark-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 8px;
+        }
+
+        .benchmark-name {
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .benchmark-description {
+            margin-top: 2px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .benchmark-value {
+            flex-shrink: 0;
+
+            color: var(--text-secondary);
+
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .benchmark-value.highlight {
+            color: var(--success);
+        }
+
+        .benchmark-track {
+            height: 8px;
+            overflow: hidden;
+
+            background: #eef0f3;
+            border-radius: 999px;
+        }
+
+        .benchmark-fill {
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        .fill-docker {
+            width: 96%;
+            background: #9ca3af;
+        }
+
+        .fill-firecracker {
+            width: 22%;
+            background: #6b7280;
+        }
+
+        .fill-wasmpulse {
+            width: 2.5%;
+            min-width: 14px;
+            background: var(--primary);
+        }
+
+        .benchmark-note {
+            margin-top: 22px;
+            padding-top: 18px;
+
+            border-top: 1px solid var(--border);
+
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        
+        /* =========================================================
+           AUDIT LEDGER & CLOUDWATCH STYLES
+        ========================================================= */
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 9px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 1050px) {
+            .telemetry-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .telemetry-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        .badge-verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .badge-hash {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            background: #f3f4f6;
+            color: #374151;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .audit-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .audit-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .audit-stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .audit-stat-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .audit-stat-val {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .verify-modal-box {
+            display: none;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            border-left: 4px solid #10b981;
+        }
+
+        .cw-step-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .cw-step-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cw-step-card {
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .cw-step-card:hover {
+            border-color: #93c5fd;
+            box-shadow: var(--shadow-md);
+        }
+
+        .cw-step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .cw-step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .cw-step-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .cw-step-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .cw-code-snippet {
+            background: #111827;
+            color: #38bdf8;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* =========================================================
+           MOBILE NAVIGATION
+        ========================================================= */
+
+        .mobile-menu-btn {
+            display: none;
+
+            width: 36px;
+            height: 36px;
+
+            border: 1px solid var(--border);
+            border-radius: 7px;
+
+            background: white;
+            color: var(--text);
+
+            font-size: 16px;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1050px) {
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+
+            .navbar {
+                padding: 0 16px;
+            }
+
+            .wrapper {
+                width: min(100% - 24px, 1280px);
+                padding-top: 20px;
+            }
+
+            .nav-actions {
+                display: none;
+            }
+
+            .brand-tag {
+                display: none;
+            }
+
+            .page-title {
+                font-size: 21px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .metric-card {
+                padding: 14px;
+            }
+
+            .metric-value {
+                font-size: 20px;
+            }
+
+            .telemetry-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .card-padding {
+                padding: 16px;
+            }
+
+            .benchmark-header {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-value {
+                font-size: 22px;
+            }
+
+            .telemetry-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                align-items: flex-start;
+            }
+
+            .tab-bar {
+                border-radius: 8px;
+            }
+
+            .tab-btn {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+        }
+
+        /* =========================================================
+           ACCESSIBILITY
+        ========================================================= */
+
+        :focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================================================
+         NAVIGATION
+    ========================================================== -->
+
+    <nav class="navbar">
+
+        <a href="#" class="nav-brand">
+            <div class="brand-logo">W</div>
+
+            <div class="brand-info">
+                <span class="brand-text">WasmPulse</span>
+                <span class="brand-tag">v0.1.0</span>
+            </div>
+        </a>
+
+        <div class="nav-actions">
+            <div class="node-status">
+                <span class="status-dot"></span>
+                <span>System operational</span>
+            </div>
+        </div>
+
+    </nav>
+
+
+    <main class="wrapper">
+
+        <!-- =====================================================
+             PAGE HEADER
+        ====================================================== -->
+
+        <header class="page-header">
+
+            <h1 class="page-title">
+                Cloud Console
+            </h1>
+
+            <p class="page-description">
+                Deploy, invoke and monitor your WebAssembly serverless functions.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             TABS
+        ====================================================== -->
+
+        <div class="tab-bar">
+
+            <button
+                class="tab-btn active"
+                onclick="switchTab('studio', this)"
+            >
+                Function Studio
+            </button>
+
+            <button
+                class="tab-btn"
+                onclick="switchTab('functions', this)"
+            >
+                Deployed Functions
+            </button>
+
+            <button
+                class="tab-btn"
+                onclick="switchTab('benchmarks', this)"
+            >
+                Performance
+            </button>
+
+            <button
+                class="tab-btn"
+                onclick="switchTab('audit', this)"
+            >
+                🛡️ Verifiable Audit Ledger
+            </button>
+
+            <button
+                class="tab-btn"
+                onclick="switchTab('cloudwatch', this)"
+            >
+                ☁️ AWS CloudWatch &amp; EC2
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+             METRICS
+        ====================================================== -->
+
+        <section class="metrics-grid">
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+                    <span class="metric-label">
+                        Cold start latency
+                    </span>
+
+                    <span class="metric-icon">
+                        ⚡
+                    </span>
+                </div>
+
+                <div
+                    class="metric-value"
+                    id="stat-coldstart"
+                >
+                    180 µs
+                </div>
+
+                <div class="metric-note success">
+                    1,600× faster than Docker
+                </div>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+                    <span class="metric-label">
+                        Sandbox memory
+                    </span>
+
+                    <span class="metric-icon">
+                        M
+                    </span>
+                </div>
+
+                <div class="metric-value">
+                    &lt; 50 KB
+                </div>
+
+                <div class="metric-note">
+                    Isolated linear memory
+                </div>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+                    <span class="metric-label">
+                        Active functions
+                    </span>
+
+                    <span class="metric-icon">
+                        F
+                    </span>
+                </div>
+
+                <div
+                    class="metric-value"
+                    id="stat-functions"
+                >
+                    1
+                </div>
+
+                <div class="metric-note">
+                    AOT precompiled
+                </div>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+                    <span class="metric-label">
+                        Total invocations
+                    </span>
+
+                    <span class="metric-icon">
+                        ↑
+                    </span>
+                </div>
+
+                <div
+                    class="metric-value"
+                    id="stat-invocations"
+                >
+                    0
+                </div>
+
+                <div class="metric-note success">
+                    Runtime operational
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             TAB 1 — FUNCTION STUDIO
+        ====================================================== -->
+
+        <section id="tab-studio">
+
+            <div class="studio-grid">
+
+
+                <!-- REQUEST CONFIGURATION -->
+
+                <div class="card card-padding">
+
+                    <div class="section-header">
+
+                        <div>
+                            <div class="section-title">
+                                Request configuration
+                            </div>
+
+                            <div class="section-description">
+                                Configure the function invocation.
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-row">
+
+                        <label for="req-tenant">
+                            Tenant ID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="req-tenant"
+                            class="input-text"
+                            value="my-app"
+                            placeholder="my-app"
+                        >
+
+                    </div>
+
+
+                    <div class="form-row">
+
+                        <label for="req-func">
+                            Function name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="req-func"
+                            class="input-text"
+                            value="echo"
+                            placeholder="echo"
+                        >
+
+                    </div>
+
+
+                    <div class="form-row">
+
+                        <label for="req-body">
+                            JSON request body
+                        </label>
+
+                        <textarea
+                            id="req-body"
+                            class="input-textarea"
+                            spellcheck="false"
+                        >{"name": "Developer", "message": "Testing Wasm execution"}</textarea>
+
+                    </div>
+
+
+                    <button
+                        class="btn-primary"
+                        onclick="executeFunction()"
+                        id="invoke-button"
+                    >
+                        Invoke function
+                    </button>
+
+                </div>
+
+
+                <!-- TELEMETRY -->
+
+                <div class="card card-padding">
+
+                    <div class="section-header">
+
+                        <div>
+                            <div class="section-title">
+                                Execution telemetry
+                            </div>
+
+                            <div class="section-description">
+                                Runtime information from the latest invocation.
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="telemetry-grid">
+
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">
+                                Cold start
+                            </span>
+
+                            <span
+                                class="telemetry-value primary"
+                                id="pill-coldstart"
+                            >
+                                —
+                            </span>
+                        </div>
+
+
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">
+                                Execution
+                            </span>
+
+                            <span
+                                class="telemetry-value success"
+                                id="pill-exec"
+                            >
+                                —
+                            </span>
+                        </div>
+
+
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">
+                                Engine total
+                            </span>
+
+                            <span
+                                class="telemetry-value"
+                                id="pill-total"
+                            >
+                                —
+                            </span>
+                        </div>
+
+
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">
+                                CPU fuel
+                            </span>
+
+                            <span
+                                class="telemetry-value warning"
+                                id="pill-fuel"
+                            >
+                                —
+                            </span>
+                        </div>
+
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">
+                                Cryptographic proof
+                            </span>
+
+                            <span
+                                class="telemetry-value"
+                                id="pill-proof"
+                                style="color: #059669; font-size: 11px;"
+                            >
+                                —
+                            </span>
+                        </div>
+
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">
+                                Receipt ID
+                            </span>
+
+                            <span
+                                class="telemetry-value"
+                                id="pill-receipt"
+                                style="color: #2563eb; font-size: 11px;"
+                            >
+                                —
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    <!-- TERMINAL -->
+
+                    <div class="terminal">
+
+                        <div class="terminal-header">
+
+                            <div class="terminal-title">
+
+                                <span class="terminal-dot"></span>
+
+                                <span>
+                                    Function output
+                                </span>
+
+                            </div>
+
+                            <span>
+                                stdout
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="terminal-body"
+                            id="term-output"
+                        >
+Ready to invoke a function.
+
+The response from the Wasm sandbox will appear here.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             TAB 2 — FUNCTIONS
+        ====================================================== -->
+
+        <section
+            id="tab-functions"
+            style="display: none;"
+        >
+
+            <div class="card card-padding">
+
+                <div class="section-header">
+
+                    <div>
+                        <div class="section-title">
+                            Deployed functions
+                        </div>
+
+                        <div class="section-description">
+                            Functions currently available in the runtime.
+                        </div>
+                    </div>
+
+
+                    <button
+                        class="btn-secondary"
+                        onclick="refreshFunctions()"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Function</th>
+                                <th>Tenant</th>
+                                <th>Size</th>
+                                <th>Invocations</th>
+                                <th>Route</th>
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="functions-table-body">
+
+                            <tr>
+                                <td
+                                    colspan="5"
+                                    style="text-align:center; color:#6b7280;"
+                                >
+                                    Loading functions...
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             TAB 3 — PERFORMANCE
+        ====================================================== -->
+
+        <section
+            id="tab-benchmarks"
+            style="display: none;"
+        >
+
+            <div class="card card-padding">
+
+                <div class="section-header">
+
+                    <div>
+                        <div class="section-title">
+                            Cold start performance
+                        </div>
+
+                        <div class="section-description">
+                            Lower latency is better. Values shown are representative benchmarks.
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- DOCKER -->
+
+                <div class="benchmark-row">
+
+                    <div class="benchmark-header">
+
+                        <div>
+                            <div class="benchmark-name">
+                                Traditional Docker / container
+                            </div>
+
+                            <div class="benchmark-description">
+                                Root filesystem, namespaces and cgroups
+                            </div>
+                        </div>
+
+                        <div class="benchmark-value">
+                            800 ms – 2,000 ms
+                        </div>
+
+                    </div>
+
+                    <div class="benchmark-track">
+                        <div class="benchmark-fill fill-docker"></div>
+                    </div>
+
+                </div>
+
+
+                <!-- FIRECRACKER -->
+
+                <div class="benchmark-row">
+
+                    <div class="benchmark-header">
+
+                        <div>
+                            <div class="benchmark-name">
+                                Firecracker MicroVM
+                            </div>
+
+                            <div class="benchmark-description">
+                                Lightweight VM with KVM virtualization
+                            </div>
+                        </div>
+
+                        <div class="benchmark-value">
+                            50 ms – 80 ms
+                        </div>
+
+                    </div>
+
+                    <div class="benchmark-track">
+                        <div class="benchmark-fill fill-firecracker"></div>
+                    </div>
+
+                </div>
+
+
+                <!-- WASMPULSE -->
+
+                <div class="benchmark-row">
+
+                    <div class="benchmark-header">
+
+                        <div>
+                            <div class="benchmark-name">
+                                WasmPulse
+                            </div>
+
+                            <div class="benchmark-description">
+                                In-process WebAssembly sandbox
+                            </div>
+                        </div>
+
+                        <div class="benchmark-value highlight">
+                            0.18 ms / 180 µs
+                        </div>
+
+                    </div>
+
+                    <div class="benchmark-track">
+                        <div class="benchmark-fill fill-wasmpulse"></div>
+                    </div>
+
+                </div>
+
+
+                <div class="benchmark-note">
+                    Benchmark figures depend on workload, hardware and runtime configuration.
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- =====================================================
+             TAB 4 — VERIFIABLE AUDIT LEDGER
+        ====================================================== -->
+
+        <section
+            id="tab-audit"
+            style="display: none;"
+        >
+
+            <div class="card card-padding">
+
+                <div class="section-header">
+
+                    <div>
+                        <div class="section-title">
+                            🛡️ Cryptographically Verifiable Execution Ledger
+                        </div>
+
+                        <div class="section-description">
+                            Every microsecond invocation generates an immutable Merkle receipt binding input SHA-256, output SHA-256, and exact CPU fuel instructions.
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+
+                        <button
+                            class="btn-secondary"
+                            onclick="verifyFullChain()"
+                        >
+                            ⛓️ Verify Full Merkle Chain
+                        </button>
+
+                        <button
+                            class="btn-secondary"
+                            onclick="refreshAuditLedger()"
+                        >
+                            🔄 Refresh Receipts
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="audit-info-grid">
+
+                    <div class="audit-stat-item">
+                        <span class="audit-stat-title">Ledger Integrity Status</span>
+                        <span class="audit-stat-val" id="audit-chain-status" style="color: #059669;">
+                            ✓ 100% Intact &amp; Tamper-Proof
+                        </span>
+                    </div>
+
+                    <div class="audit-stat-item">
+                        <span class="audit-stat-title">Total Verified Receipts</span>
+                        <span class="audit-stat-val" id="audit-receipts-count">
+                            0
+                        </span>
+                    </div>
+
+                    <div class="audit-stat-item">
+                        <span class="audit-stat-title">Latest Merkle Root Hash</span>
+                        <span class="audit-stat-val" id="audit-latest-hash" style="font-size: 12px; word-break: break-all;">
+                            0000000000000000000000000000000000000000000000000000000000000000
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- VERIFY RESULT MODAL/BOX -->
+                <div id="verify-result-box" class="verify-modal-box"></div>
+
+                <div class="table-wrapper" style="margin-top: 18px;">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Receipt ID</th>
+                                <th>Tenant / Function</th>
+                                <th>CPU Fuel</th>
+                                <th>Input SHA-256</th>
+                                <th>Output SHA-256</th>
+                                <th>Proof Hash</th>
+                                <th>Cryptographic Attestation</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="audit-table-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #6b7280;">
+                                    Loading audit receipts...
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             TAB 5 — AWS CLOUDWATCH & EC2 CONSOLE
+        ====================================================== -->
+
+        <section
+            id="tab-cloudwatch"
+            style="display: none;"
+        >
+
+            <div class="card card-padding">
+
+                <div class="section-header">
+
+                    <div>
+                        <div class="section-title">
+                            ☁️ AWS CloudWatch &amp; EC2 Live Console Integration
+                        </div>
+
+                        <div class="section-description">
+                            Inspect native AWS CloudWatch Embedded Metric Format (EMF) logs, CloudWatch agent integration, and manage production EC2 instances.
+                        </div>
+                    </div>
+
+                    <button
+                        class="btn-secondary"
+                        onclick="copyDashboardJson()"
+                    >
+                        📋 Copy CloudWatch Dashboard JSON
+                    </button>
+
+                </div>
+
+                <!-- LIVE EMF STREAM PREVIEW -->
+                <div style="margin-bottom: 22px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">
+                        ⚡ AWS CloudWatch Embedded Metric Format (EMF) Log Stream
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                        WasmPulse emits native EMF JSON logs to systemd journal / CloudWatch on every invocation. AWS CloudWatch automatically extracts high-resolution metrics without custom agents.
+                    </p>
+
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-title">
+                                <span class="terminal-dot" style="background: #22c55e;"></span>
+                                <span>CloudWatch EMF Standard Payload (Namespace: WasmPulse/ServerlessEngine)</span>
+                            </div>
+                            <span style="color: #60a5fa;">JSON format</span>
+                        </div>
+                        <div class="terminal-body" id="emf-preview-box" style="min-height: 180px; max-height: 240px; color: #a5f3fc;">
+{
+  "_aws": {
+    "Timestamp": 1731475200000,
+    "CloudWatchMetrics": [
+      {
+        "Namespace": "WasmPulse/ServerlessEngine",
+        "Dimensions": [["TenantId"], ["TenantId", "FunctionName"]],
+        "Metrics": [
+          { "Name": "ColdStartLatencyUs", "Unit": "Microseconds" },
+          { "Name": "ExecutionTimeUs", "Unit": "Microseconds" },
+          { "Name": "TotalLatencyUs", "Unit": "Microseconds" },
+          { "Name": "FuelConsumed", "Unit": "Count" },
+          { "Name": "Invocations", "Unit": "Count" },
+          { "Name": "Errors", "Unit": "Count" }
+        ]
+      }
+    ]
+  },
+  "TenantId": "my-app",
+  "FunctionName": "echo",
+  "ColdStartLatencyUs": 155,
+  "ExecutionTimeUs": 85,
+  "TotalLatencyUs": 240,
+  "FuelConsumed": 8306,
+  "Invocations": 1,
+  "Errors": 0,
+  "ProofHash": "9a4f21e8b7c3d9a1...",
+  "ReceiptId": "rcpt_1731475200000_1"
+}</div>
+                    </div>
+                </div>
+
+                <!-- AWS CONSOLE MANAGEMENT MANUAL -->
+                <div style="margin-top: 26px;">
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px;">
+                        🛠️ Managing WasmPulse from AWS Console (Manual Guide)
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+                        Follow these exact steps in the AWS Management Console to operate your serverless engine in production.
+                    </div>
+
+                    <div class="cw-step-grid">
+
+                        <div class="cw-step-card">
+                            <div class="cw-step-header">
+                                <div class="cw-step-num">1</div>
+                                <div class="cw-step-title">EC2 Security Group Configuration</div>
+                            </div>
+                            <div class="cw-step-desc">
+                                Allow inbound traffic to the WasmPulse HTTP gateway.
+                                <br><br>
+                                <strong>AWS Console Path:</strong><br>
+                                <code>EC2 &gt; Instances &gt; [Your Instance] &gt; Security &gt; Security Groups</code>
+                                <br><br>
+                                Click <strong>Edit inbound rules</strong> and add:
+                                <div class="cw-code-snippet">Type: Custom TCP
+Port range: 8080
+Source: 0.0.0.0/0 (or your corporate CIDR)
+Description: WasmPulse HTTP Gateway</div>
+                            </div>
+                        </div>
+
+                        <div class="cw-step-card">
+                            <div class="cw-step-header">
+                                <div class="cw-step-num">2</div>
+                                <div class="cw-step-title">Attach CloudWatch IAM Role</div>
+                            </div>
+                            <div class="cw-step-desc">
+                                Grant your EC2 instance permissions to stream logs and metrics to CloudWatch.
+                                <br><br>
+                                <strong>AWS Console Path:</strong><br>
+                                1. Open <code>IAM &gt; Roles &gt; Create role &gt; AWS service: EC2</code>.<br>
+                                2. Attach policy: <code>CloudWatchAgentServerPolicy</code>.<br>
+                                3. Name role: <code>WasmPulse-CloudWatch-Role</code>.<br>
+                                4. In EC2 Console: <code>Actions &gt; Security &gt; Modify IAM role</code> &gt; select <code>WasmPulse-CloudWatch-Role</code> &gt; <strong>Update IAM role</strong>.
+                            </div>
+                        </div>
+
+                        <div class="cw-step-card">
+                            <div class="cw-step-header">
+                                <div class="cw-step-num">3</div>
+                                <div class="cw-step-title">View Live Metrics in CloudWatch</div>
+                            </div>
+                            <div class="cw-step-desc">
+                                Monitor microsecond cold starts and fuel consumption in real time.
+                                <br><br>
+                                <strong>AWS Console Path:</strong><br>
+                                <code>CloudWatch &gt; Metrics &gt; All metrics</code>
+                                <br><br>
+                                Under <strong>Custom Namespaces</strong>, click <strong>WasmPulse/ServerlessEngine</strong>.
+                                Select dimensions:
+                                <ul>
+                                    <li><code>TenantId, FunctionName</code>: Per-function cold start &amp; fuel</li>
+                                    <li><code>TenantId</code>: Aggregate tenant invocations</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="cw-step-card">
+                            <div class="cw-step-header">
+                                <div class="cw-step-num">4</div>
+                                <div class="cw-step-title">Create CloudWatch Alarms &amp; SNS</div>
+                            </div>
+                            <div class="cw-step-desc">
+                                Trigger automated alerts if execution latency exceeds SLA limits.
+                                <br><br>
+                                <strong>AWS Console Path:</strong><br>
+                                <code>CloudWatch &gt; Alarms &gt; Create alarm</code>
+                                <br><br>
+                                Metric: <code>TotalLatencyUs</code> &gt; 5,000 µs (5 milliseconds).
+                                <br>
+                                Action: Send notification to SNS topic <code>WasmPulse-Alerts</code> (delivers instant email to engineers).
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
+
+    <script>
+
+        /* =========================================================
+           TAB SWITCHING
+        ========================================================== */
+
+        function switchTab(tabId, clickedButton) {
+
+            document
+                .querySelectorAll(".tab-btn")
+                .forEach(button => {
+                    button.classList.remove("active");
+                });
+
+            document
+                .querySelectorAll(
+                    "#tab-studio, #tab-functions, #tab-benchmarks, #tab-audit, #tab-cloudwatch"
+                )
+                .forEach(tab => {
+                    tab.style.display = "none";
+                });
+
+            const selectedTab =
+                document.getElementById("tab-" + tabId);
+
+            if (selectedTab) {
+                selectedTab.style.display = "block";
+            }
+
+            if (clickedButton) {
+                clickedButton.classList.add("active");
+            }
+
+            if (tabId === "functions") {
+                refreshFunctions();
+            } else if (tabId === "audit") {
+                refreshAuditLedger();
+            }
+        }
+
+        /* =========================================================
+           AUDIT LEDGER & VERIFIABLE EXECUTION
+        ========================================================== */
+
+        async function refreshAuditLedger() {
+            const tbody = document.getElementById("audit-table-body");
+            try {
+                const res = await fetch("/api/v1/audit/receipts");
+                if (!res.ok) throw new Error("Failed to fetch audit receipts");
+                const receipts = await res.json();
+
+                document.getElementById("audit-receipts-count").innerText = receipts.length;
+                if (receipts.length > 0) {
+                    document.getElementById("audit-latest-hash").innerText = receipts[0].proof_hash;
+                }
+
+                if (!receipts || receipts.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align:center; color:#6b7280; padding: 24px;">
+                                No execution receipts yet. Invoke a function from Function Studio to generate a cryptographic receipt.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = receipts.map(r => `
+                    <tr id="row-${escapeHtml(r.receipt_id)}">
+                        <td>
+                            <span class="code-pill">${escapeHtml(r.receipt_id)}</span>
+                        </td>
+                        <td>
+                            <strong style="color:var(--text);">${escapeHtml(r.tenant_id)}</strong> / ${escapeHtml(r.function_name)}
+                        </td>
+                        <td>
+                            <span class="count-value">${r.fuel_consumed.toLocaleString()} ins</span>
+                        </td>
+                        <td>
+                            <span class="badge-hash" title="${escapeHtml(r.input_sha256)}">${escapeHtml(r.input_sha256.substring(0, 14))}…</span>
+                        </td>
+                        <td>
+                            <span class="badge-hash" title="${escapeHtml(r.output_sha256)}">${escapeHtml(r.output_sha256.substring(0, 14))}…</span>
+                        </td>
+                        <td>
+                            <span class="badge-hash" title="${escapeHtml(r.proof_hash)}" style="color:#059669; font-weight:600;">${escapeHtml(r.proof_hash.substring(0, 14))}…</span>
+                        </td>
+                        <td>
+                            <button
+                                class="btn-secondary"
+                                style="font-size: 11px; padding: 4px 8px;"
+                                onclick="verifySingleReceipt('${escapeHtml(r.receipt_id)}')"
+                            >
+                                ✓ Verify Proof
+                            </button>
+                        </td>
+                    </tr>
+                `).join("");
+
+            } catch (err) {
+                console.error("Audit load error:", err);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#dc2626; padding: 18px;">
+                            Unable to load audit receipts. (${escapeHtml(err.message)})
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function verifySingleReceipt(receiptId) {
+            const box = document.getElementById("verify-result-box");
+            box.style.display = "block";
+            box.innerHTML = `<span style="color:#60a5fa;">Verifying cryptographic proof for ${escapeHtml(receiptId)}...</span>`;
+
+            try {
+                const res = await fetch(`/api/v1/audit/verify/${encodeURIComponent(receiptId)}`);
+                if (!res.ok) throw new Error("Receipt verification request failed");
+                const data = await res.json();
+
+                if (data.is_valid) {
+                    box.style.borderLeftColor = "#10b981";
+                    box.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong style="color:#34d399; font-size:13px;">✓ CRYPTOGRAPHIC ATTESTATION VERIFIED &amp; VALID</strong>
+                            <button onclick="document.getElementById('verify-result-box').style.display='none'" style="background:transparent; border:none; color:#94a3b8; cursor:pointer;">✕ Close</button>
+                        </div>
+                        <div><strong>Receipt ID:</strong> ${escapeHtml(data.receipt_id)}</div>
+                        <div><strong>Tenant / Function:</strong> ${escapeHtml(data.receipt.tenant_id)} / ${escapeHtml(data.receipt.function_name)}</div>
+                        <div><strong>Exact CPU Fuel:</strong> ${data.receipt.fuel_consumed} instructions</div>
+                        <div><strong>Input Hash SHA-256:</strong> ${escapeHtml(data.receipt.input_sha256)}</div>
+                        <div><strong>Output Hash SHA-256:</strong> ${escapeHtml(data.receipt.output_sha256)}</div>
+                        <div><strong>Chained Prev Hash:</strong> ${escapeHtml(data.receipt.prev_receipt_hash)}</div>
+                        <div><strong>Deterministic Proof Hash:</strong> <span style="color:#34d399;">${escapeHtml(data.proof_hash)}</span></div>
+                        <div style="margin-top:8px; color:#a7f3d0; font-size:11px;">
+                            Mathematical equation validated: ProofHash == SHA256(ReceiptID || Tenant || Func || InputSHA || OutputSHA || Fuel || ExitCode || PrevHash). Root of trust intact.
+                        </div>
+                    `;
+                } else {
+                    box.style.borderLeftColor = "#ef4444";
+                    box.innerHTML = `
+                        <strong style="color:#f87171;">⚠️ ATTESTATION FAILED / TAMPER DETECTED:</strong> Receipt hash does not match computed Merkle root.
+                    `;
+                }
+            } catch (err) {
+                box.style.borderLeftColor = "#ef4444";
+                box.innerHTML = `<span style="color:#f87171;">Verification error: ${escapeHtml(err.message)}</span>`;
+            }
+        }
+
+        async function verifyFullChain() {
+            try {
+                const res = await fetch("/api/v1/audit/chain");
+                if (!res.ok) throw new Error("Chain check failed");
+                const data = await res.json();
+                if (data.chain_valid) {
+                    alert(`✓ FULL MERKLE CHAIN VERIFIED!\n\nTotal Receipts Checked: ${data.receipts_verified}\nChain Status: 100% Intact & Tamper-Proof\nLatest Root Hash: ${data.latest_proof_hash}`);
+                    document.getElementById("audit-chain-status").innerText = "✓ 100% Intact (" + data.receipts_verified + " verified)";
+                } else {
+                    alert("⚠️ MERKLE CHAIN TAMPER DETECTED! One or more blocks failed integrity validation.");
+                }
+            } catch (err) {
+                alert("Chain verification failed: " + err.message);
+            }
+        }
+
+        function copyDashboardJson() {
+            const dashboardData = {
+              "widgets": [
+                {
+                  "type": "metric",
+                  "x": 0, "y": 0, "width": 12, "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "WasmPulse/ServerlessEngine", "ColdStartLatencyUs", "TenantId", "my-app", { "stat": "Average", "label": "Cold Start (µs)" } ],
+                      [ "...", "ExecutionTimeUs", "TenantId", "my-app", { "stat": "Average", "label": "Execution Run (µs)" } ],
+                      [ "...", "TotalLatencyUs", "TenantId", "my-app", { "stat": "Average", "label": "Total Latency (µs)" } ]
+                    ],
+                    "view": "timeSeries", "region": "us-east-1",
+                    "title": "⚡ Microsecond Latency Telemetry (Cold Start vs Execution)",
+                    "period": 10, "yAxis": { "left": { "label": "Microseconds (µs)", "min": 0 } }
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 12, "y": 0, "width": 12, "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "WasmPulse/ServerlessEngine", "Invocations", { "stat": "Sum", "color": "#2ca02c" } ],
+                      [ ".", "Errors", { "stat": "Sum", "color": "#d62728" } ]
+                    ],
+                    "view": "timeSeries", "stacked": true, "region": "us-east-1",
+                    "title": "🚀 Invocations & Error Rates", "period": 10
+                  }
+                }
+              ]
+            };
+            navigator.clipboard.writeText(JSON.stringify(dashboardData, null, 2))
+                .then(() => alert("✓ CloudWatch Dashboard JSON copied to clipboard!\n\nIn AWS CloudWatch Console: Go to Dashboards > Create Dashboard > Actions > View/edit source > Paste JSON > Save."))
+                .catch(() => alert("Please copy manually from ec2-setup/cloudwatch-dashboard.json"));
+        }
+
+
+        /* =========================================================
+           METRICS
+        ========================================================== */
+
+        async function fetchMetrics() {
+
+            try {
+
+                const res = await fetch("/metrics");
+
+                if (!res.ok) {
+                    throw new Error("Metrics request failed");
+                }
+
+                const data = await res.json();
+
+                document.getElementById("stat-functions").innerText =
+                    data.active_functions || 0;
+
+                document.getElementById("stat-invocations").innerText =
+                    data.total_invocations || 0;
+
+            } catch (error) {
+
+                console.error(
+                    "Metric sync error:",
+                    error
+                );
+
+            }
+
+        }
+
+        fetchMetrics();
+
+        setInterval(
+            fetchMetrics,
+            3000
+        );
+
+
+        /* =========================================================
+           FUNCTIONS TABLE
+        ========================================================== */
+
+        async function refreshFunctions() {
+
+            const tbody =
+                document.getElementById(
+                    "functions-table-body"
+                );
+
+            try {
+
+                const res =
+                    await fetch("/api/v1/functions");
+
+                if (!res.ok) {
+                    throw new Error(
+                        "Failed to fetch functions"
+                    );
+                }
+
+                const funcs =
+                    await res.json();
+
+
+                if (!funcs || funcs.length === 0) {
+
+                    tbody.innerHTML = `
+                        <tr>
+                            <td
+                                colspan="5"
+                                style="text-align:center; color:#6b7280;"
+                            >
+                                No functions currently deployed.
+                            </td>
+                        </tr>
+                    `;
+
+                    return;
+                }
+
+
+                tbody.innerHTML =
+                    funcs.map(f => `
+
+                        <tr>
+
+                            <td>
+                                <span class="function-name">
+                                    ${escapeHtml(f.name)}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="code-pill">
+                                    ${escapeHtml(f.tenant_id)}
+                                </span>
+                            </td>
+
+                            <td>
+                                ${(f.bytecode_size_bytes / 1024).toFixed(1)}
+                                KB
+                            </td>
+
+                            <td>
+                                <span class="count-value">
+                                    ${f.invocation_count}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="code-pill">
+                                    /fn/${escapeHtml(f.tenant_id)}/${escapeHtml(f.name)}
+                                </span>
+                            </td>
+
+                        </tr>
+
+                    `).join("");
+
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to load functions:",
+                    error
+                );
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="5"
+                            style="text-align:center; color:#dc2626;"
+                        >
+                            Unable to load functions.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+
+        /* =========================================================
+           FUNCTION EXECUTION
+        ========================================================== */
+
+        async function executeFunction() {
+
+            const tenant =
+                document
+                    .getElementById("req-tenant")
+                    .value
+                    .trim();
+
+            const func =
+                document
+                    .getElementById("req-func")
+                    .value
+                    .trim();
+
+            const body =
+                document
+                    .getElementById("req-body")
+                    .value;
+
+            const term =
+                document.getElementById(
+                    "term-output"
+                );
+
+            const button =
+                document.getElementById(
+                    "invoke-button"
+                );
+
+
+            if (!tenant || !func) {
+
+                term.innerText =
+                    "Please provide a tenant ID and function name.";
+
+                return;
+            }
+
+
+            /* Validate JSON */
+
+            try {
+
+                JSON.parse(body);
+
+            } catch (error) {
+
+                term.innerText =
+                    "Invalid JSON request body.\n\n" +
+                    error.message;
+
+                return;
+            }
+
+
+            button.disabled = true;
+            button.innerText = "Invoking…";
+
+
+            term.innerText =
+                "Preparing function invocation...\n" +
+                "Allocating Wasm sandbox...\n" +
+                "Executing function...";
+
+
+            const t0 =
+                performance.now();
+
+
+            try {
+
+                const res =
+                    await fetch(
+                        `/fn/${encodeURIComponent(tenant)}/${encodeURIComponent(func)}`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: body
+                        }
+                    );
+
+
+                const t1 =
+                    performance.now();
+
+
+                const cs =
+                    res.headers.get(
+                        "x-cold-start-us"
+                    ) || "0";
+
+                const exec =
+                    res.headers.get(
+                        "x-execution-time-us"
+                    ) || "0";
+
+                const tot =
+                    res.headers.get(
+                        "x-total-latency-us"
+                    ) || "0";
+
+                const fuel =
+                    res.headers.get(
+                        "x-fuel-consumed"
+                    ) || "0";
+
+                const proofHash =
+                    res.headers.get(
+                        "x-execution-proof"
+                    ) || "";
+
+                const receiptId =
+                    res.headers.get(
+                        "x-execution-receipt-id"
+                    ) || "";
+
+                const logsHeader =
+                    res.headers.get(
+                        "x-sandbox-logs"
+                    );
+
+
+                document.getElementById(
+                    "pill-coldstart"
+                ).innerText =
+                    cs +
+                    " µs (" +
+                    (Number(cs) / 1000).toFixed(2) +
+                    " ms)";
+
+
+                document.getElementById(
+                    "pill-exec"
+                ).innerText =
+                    exec + " µs";
+
+
+                document.getElementById(
+                    "pill-total"
+                ).innerText =
+                    tot + " µs";
+
+
+                document.getElementById(
+                    "pill-fuel"
+                ).innerText =
+                    fuel + " ins";
+
+                if (proofHash) {
+                    document.getElementById("pill-proof").innerHTML =
+                        `<span title="${escapeHtml(proofHash)}">${escapeHtml(proofHash.substring(0, 10))}… ✓</span>`;
+                }
+
+                if (receiptId) {
+                    document.getElementById("pill-receipt").innerHTML =
+                        `<span title="${escapeHtml(receiptId)}">${escapeHtml(receiptId.substring(0, 12))}…</span>`;
+                }
+
+                document.getElementById(
+                    "stat-coldstart"
+                ).innerText =
+                    cs + " µs";
+
+                // Update EMF live stream preview box
+                const emfBox = document.getElementById("emf-preview-box");
+                if (emfBox && proofHash) {
+                    const sampleEmf = {
+                        "_aws": {
+                            "Timestamp": Date.now(),
+                            "CloudWatchMetrics": [{
+                                "Namespace": "WasmPulse/ServerlessEngine",
+                                "Dimensions": [["TenantId"], ["TenantId", "FunctionName"]],
+                                "Metrics": [
+                                    { "Name": "ColdStartLatencyUs", "Unit": "Microseconds" },
+                                    { "Name": "ExecutionTimeUs", "Unit": "Microseconds" },
+                                    { "Name": "TotalLatencyUs", "Unit": "Microseconds" },
+                                    { "Name": "FuelConsumed", "Unit": "Count" },
+                                    { "Name": "Invocations", "Unit": "Count" },
+                                    { "Name": "Errors", "Unit": "Count" }
+                                ]
+                            }]
+                        },
+                        "TenantId": tenant,
+                        "FunctionName": func,
+                        "ColdStartLatencyUs": Number(cs),
+                        "ExecutionTimeUs": Number(exec),
+                        "TotalLatencyUs": Number(tot),
+                        "FuelConsumed": Number(fuel),
+                        "Invocations": 1,
+                        "Errors": res.status === 200 ? 0 : 1,
+                        "ProofHash": proofHash,
+                        "ReceiptId": receiptId
+                    };
+                    emfBox.innerText = JSON.stringify(sampleEmf, null, 2);
+                }
+
+
+                const responseText =
+                    await res.text();
+
+
+                let outputLog = "";
+
+
+                if (logsHeader) {
+
+                    try {
+
+                        const parsed =
+                            JSON.parse(
+                                logsHeader
+                            );
+
+                        outputLog =
+                            "--- Sandbox logs ---\n" +
+                            parsed.join("\n") +
+                            "\n\n";
+
+                    } catch (error) {
+
+                        console.warn(
+                            "Unable to parse sandbox logs"
+                        );
+
+                    }
+                }
+
+
+                term.innerText =
+                    outputLog +
+                    "--- Function response (HTTP " +
+                    res.status +
+                    ") ---\n" +
+                    responseText +
+                    "\n\n" +
+                    "Client roundtrip: " +
+                    (t1 - t0).toFixed(2) +
+                    " ms";
+
+
+                fetchMetrics();
+
+
+            } catch (error) {
+
+                term.innerText =
+                    "Request failed.\n\n" +
+                    error.message;
+
+            } finally {
+
+                button.disabled = false;
+                button.innerText =
+                    "Invoke function";
+
+            }
+
+        }
+
+
+        /* =========================================================
+           BASIC HTML ESCAPING
+        ========================================================== */
+
+        function escapeHtml(value) {
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+    </script>
+
+</body>
+</html>
